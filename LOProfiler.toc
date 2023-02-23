@@ -1,0 +1,5 @@
+## Interface: 100005
+## Title: |cfff5deb3LuaObfuscator - Wow Profile
+## Notes: by |cfff19b32Ferib Hellscream
+
+LOProfiler.lua
