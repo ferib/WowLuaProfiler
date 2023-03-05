@@ -1,92 +1,125 @@
 
-local name, width, height = "Profiler", 300, 150 
+local name, width, height, titleheight,scrollbarwidth = "|cffffffffProfiler|r", 300, 150, 18,13
+
+local PaneBackdrop  = {
+	bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
+	edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
+	edgeSize = 3,
+	insets = {left = 1, right = 1, top = 1, bottom = 1},
+}
+local ButtonBackdrop  = {
+	bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
+	edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
+	edgeSize = 3,
+	insets = {left = 1, right = 1, top = 1, bottom = 1},
+}
+
+local function CloseFrame(frame)
+	frame:Hide()
+end
 
 -- CREATE FRAME
-frame = CreateFrame("Frame", "LOP_FRAME", nil)
+local frame = CreateFrame("Frame", "LOP_FRAME", nil, "BackdropTemplate")
 frame:SetPoint("CENTER", 120, 0)
 frame:SetSize(width, height)
-frame.bck = frame:CreateTexture("ARTWORK")
-frame.bck:SetAllPoints()
-frame.bck:SetColorTexture(0.23, 0.23, 0.23, 0.5)
-
--- title bar-ish
-frame.top = CreateFrame("Frame", "LOP_TITLE", frame)
-frame.top:SetSize(width-4, 16)
-frame.top:SetPoint("TOP", 0, -2)
+frame:SetBackdrop(PaneBackdrop)
+frame:SetBackdropColor(0,0,0,0.6)
+frame:SetBackdropBorderColor(0.3,0.3,0.3,1)
 frame:SetMovable(true)
 frame:EnableMouse(true)
 frame:RegisterForDrag("LeftButton")
 frame:SetScript("OnDragStart", frame.StartMoving) -- TODO: only allow draggin for frame.top ?
 frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-frame.top.bck = frame.top:CreateTexture("ARTWORK")
-frame.top.bck:SetAllPoints()
-frame.top.bck:SetColorTexture(0.23, 0.23, 0.23, 0.5)
-frame.title = frame:CreateFontString("LOP_TEXT", "ARTWORK", "GameFontNormal")
-frame.title:SetFont("GameFontNormal", 14)
-frame.title:SetPoint("TOPLEFT",  4, -4)
-frame.title:SetText("" .. name)
+
+frame.closebutton = CreateFrame("Button", nil, frame, "BackdropTemplate")
+frame.closebutton:SetScript("OnClick", function(frameholder) CloseFrame(frame) end)
+frame.closebutton:SetPoint("TOPRIGHT", -3, -3)
+frame.closebutton:SetHeight(12)
+frame.closebutton:SetWidth(12)
+frame.closebutton:SetBackdrop(ButtonBackdrop)
+frame.closebutton:SetBackdropColor(0.2,0.2,0.2, 0.5)
+frame.closebutton:SetBackdropBorderColor(0.4, 0.4, 0.4, 0.8)
+frame.closebutton:SetScript("OnEnter",function()
+	frame.closebutton:SetBackdropColor(0.6,0.2,0.2, 0.5)
+end)
+frame.closebutton:SetScript("OnLeave",function()
+	frame.closebutton:SetBackdropColor(0.2,0.2,0.2, 0.5)
+end)
+frame.closebutton.text = frame.closebutton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+frame.closebutton.text:SetPoint("CENTER")
+frame.closebutton.text:SetJustifyH("CENTER")
+frame.closebutton.text:SetFont("Fonts\\FRIZQT__.ttf", 7)
+frame.closebutton.text:SetText("|cffff0000X")
+
+-- title bar-ish
+frame.top = CreateFrame("Frame", "LOP_TITLE", frame,"BackdropTemplate")
+frame.top:SetSize(width, titleheight)
+frame.top:SetPoint("TOP", 0, 0)
+frame.top:SetBackdrop(PaneBackdrop)
+frame.top:SetBackdropColor(0.3,0.3,0.3,0.6)
+frame.top:SetBackdropBorderColor(0.3,0.3,0.3,0.6)
+
+
+frame.title = frame.top:CreateFontString("LOP_TEXT", "ARTWORK", "GameFontNormal")
+frame.title:SetFont("GameFontNormalSmall", 14)
+frame.title:SetPoint("TOPLEFT",  4, -3)
+frame.title:SetText(name)
 
 local frameHolder = frame;
  
 -- create the frame that will hold all other frames/objects:
-local self = frameHolder or CreateFrame("Frame", nil, UIParent); -- re-size this to whatever size you wish your ScrollFrame to be, at this point
+local frameholder = frameHolder or CreateFrame("Frame", nil, UIParent); -- re-size this to whatever size you wish your ScrollFrame to be, at this point
  
--- now create the template Scroll Frame (this frame must be given a name so that it can be looked up via the _G function (you'll see why later on in the code)
-self.scrollframe = self.scrollframe or CreateFrame("ScrollFrame", "ANewScrollFrame", self, "UIPanelScrollFrameTemplate");
- 
--- create the standard frame which will eventually become the Scroll Frame's scrollchild
--- importantly, each Scroll Frame can have only ONE scrollchild
-self.scrollchild = self.scrollchild or CreateFrame("Frame"); -- not sure what happens if you do, but to be safe, don't parent this yet (or do anything with it)
- 
+frameholder.scrollframe = frameholder.scrollframe or CreateFrame("ScrollFrame", "ANewScrollFrame", frame, "UIPanelScrollFrameTemplate");
+frameholder.scrollframe:SetPoint("TOPLEFT",0,-titleheight)
+frameholder.scrollframe:SetPoint("BOTTOMRIGHT",-10,0)
+
+frameholder.editbox = frameholder.editbox or CreateFrame("EditBox", name, frame, "BackdropTemplate")
+frameholder.editbox:SetMultiLine(true)
+frameholder.editbox:SetSize(width-scrollbarwidth,900)
+frameholder.editbox:SetPoint("TOPLEFT", frameholder.scrollframe)
+frameholder.editbox:SetPoint("BOTTOMRIGHT", frameholder.scrollframe)
+frameholder.editbox:SetFontObject(ChatFontNormal)
+frameholder.editbox:SetMaxLetters(999999)
+frameholder.editbox:SetAutoFocus(false)
+frameholder.editbox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end) 
+
+frameholder.editbox:SetTextInsets(3,0,0,0)
+
+frameholder.editbox:SetBackdrop(PaneBackdrop)
+frameholder.editbox:SetBackdropColor(0.3, 0.3, 0.3, 0.2)
+frameholder.editbox:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
+
+frameholder.scrollframe:SetScrollChild(frameholder.editbox)
+
 -- define the scrollframe's objects/elements:
-local scrollbarName = self.scrollframe:GetName()
-self.scrollbar = _G[scrollbarName.."ScrollBar"];
-self.scrollupbutton = _G[scrollbarName.."ScrollBarScrollUpButton"];
-self.scrolldownbutton = _G[scrollbarName.."ScrollBarScrollDownButton"];
+local scrollbarName = frameholder.scrollframe:GetName()
+frameholder.scrollbar = _G[scrollbarName.."ScrollBar"];
+frameholder.scrollupbutton = _G[scrollbarName.."ScrollBarScrollUpButton"];
+frameholder.scrolldownbutton = _G[scrollbarName.."ScrollBarScrollDownButton"];
+frameholder.scrollslider = _G[scrollbarName.."ScrollBarThumbTexture"]
  
 -- all of these objects will need to be re-anchored (if not, they appear outside the frame and about 30 pixels too high)
-self.scrollupbutton:ClearAllPoints();
-self.scrollupbutton:SetPoint("TOPRIGHT", self.scrollframe, "TOPRIGHT", -2, -2);
+frameholder.scrollupbutton:ClearAllPoints();
+frameholder.scrollupbutton:SetPoint("TOPRIGHT", frameholder.scrollframe, "TOPRIGHT", 9, -2);
+frameholder.scrollupbutton:SetWidth(12)
+frameholder.scrollupbutton:SetHeight(12)
  
-self.scrolldownbutton:ClearAllPoints();
-self.scrolldownbutton:SetPoint("BOTTOMRIGHT", self.scrollframe, "BOTTOMRIGHT", -2, 2);
+frameholder.scrolldownbutton:ClearAllPoints();
+frameholder.scrolldownbutton:SetPoint("BOTTOMRIGHT", frameholder.scrollframe, "BOTTOMRIGHT", 9, 2);
+frameholder.scrolldownbutton:SetWidth(12)
+frameholder.scrolldownbutton:SetHeight(12)
  
-self.scrollbar:ClearAllPoints();
-self.scrollbar:SetPoint("TOP", self.scrollupbutton, "BOTTOM", 0, -2);
-self.scrollbar:SetPoint("BOTTOM", self.scrolldownbutton, "TOP", 0, 2);
- 
--- now officially set the scrollchild as your Scroll Frame's scrollchild (this also parents self.scrollchild to self.scrollframe)
--- IT IS IMPORTANT TO ENSURE THAT YOU SET THE SCROLLCHILD'S SIZE AFTER REGISTERING IT AS A SCROLLCHILD:
-self.scrollframe:SetScrollChild(self.scrollchild);
- 
--- set self.scrollframe points to the first frame that you created (in this case, self)
-self.scrollframe:SetAllPoints(self);
- 
--- now that SetScrollChild has been defined, you are safe to define your scrollchild's size. Would make sense to make it's height > scrollframe's height,
--- otherwise there's no point having a scrollframe!
--- note: you may need to define your scrollchild's height later on by calculating the combined height of the content that the scrollchild's child holds.
--- (see the bit below about showing content).
+frameholder.scrollbar:ClearAllPoints();
+frameholder.scrollbar:SetPoint("TOP", frameholder.scrollupbutton, "BOTTOM", 0, -2);
+frameholder.scrollbar:SetPoint("BOTTOM", frameholder.scrolldownbutton, "TOP", 0, 2);
+frameholder.scrollbar:SetWidth(11)
 
--- TODO: dynamic sizing?
---local size = #items * lineHeight
-self.scrollchild:SetSize(self.scrollframe:GetWidth(), ( self.scrollframe:GetHeight() * 2 ));
- 
- 
--- THE SCROLLFRAME IS COMPLETE AT THIS POINT.  THE CODE BELOW DEMONSTRATES HOW TO SHOW DATA ON IT.
- 
- 
--- you need yet another frame which will be used to parent your widgets etc to.  This is the frame which will actually be seen within the Scroll Frame
--- It is parented to the scrollchild.  I like to think of scrollchild as a sort of 'pin-board' that you can 'pin' a piece of paper to (or take it back off)
-self.moduleoptions = self.moduleoptions or CreateFrame("Frame", nil, self.scrollchild);
-self.moduleoptions:SetAllPoints(self.scrollchild);
- 
--- a good way to immediately demonstrate the new scrollframe in action is to do the following...
- 
--- create a fontstring or a texture or something like that, then place it at the bottom of the frame that holds your info (in this case self.moduleoptions)
-self.moduleoptions.fontstring = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-self.moduleoptions.fontstring:SetText("FunctionTest1");
-self.moduleoptions.fontstring:SetPoint("BOTTOMLEFT", self.moduleoptions, "BOTTOMLEFT", 20, 60);
- 
+frameholder.scrollslider:SetWidth(11)
+frameholder.scrollslider:SetHeight(18)
+
+frameholder.editbox:SetText("Profiler data will be shown here!")
+
 -- you should now need to scroll down to see the text "This is a test."
 
 ProfilerData = {}
@@ -130,12 +163,19 @@ local function tickProfiler()
 		end
 
         -- TODO: print this in GUI
+		local data = {}
 		for name, vv in pairs(ProfilerData) do
             if type(vv) == "table" then
-                print(name .. ": " .. (tonumber(string.format("%.6f", vv.totalTime))) .. "s (count: " .. vv.count .. ")");
+                table.insert(data, name)
+				table.insert(data, ": ")
+				table.insert(data, tonumber(string.format("%.6f", vv.totalTime)))
+				table.insert(data, "s (count: ")
+				table.insert(data, vv.count)
+				table.insert(data, ")\n")
             end
 		end
+		frameholder.editbox:SetText(table.concat(data))
     end
-    C_Timer.After(5, tickProfiler)
+    C_Timer.After(10, tickProfiler)
 end
 tickProfiler();
